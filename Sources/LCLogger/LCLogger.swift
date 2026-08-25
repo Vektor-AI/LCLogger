@@ -6,7 +6,11 @@ public protocol LCLoggerErrorProtocol {
 }
 
 public final class LCLogger {
-    
+
+    /// The in-memory buffer is a tail, not an archive: it keeps at most this
+    /// many entries so an 8-hour session with the logger enabled cannot grow
+    /// memory without bound.
+    internal static let maxStoredLogs = 1000
     internal static let logs = CurrentValueSubject<[LCLoggerLog], Never>([])
     
     public var enabled: Bool = true {
@@ -37,7 +41,11 @@ public final class LCLogger {
         let log = LCLoggerLog(message: message, type: type, filePath: filePath, line: line)
         outputStream.write(log.formattedMessage)
         guard enabled else { return }
-        let logs = LCLogger.logs.value + [log]
+        var logs = LCLogger.logs.value
+        logs.append(log)
+        if logs.count > LCLogger.maxStoredLogs {
+            logs.removeFirst(logs.count - LCLogger.maxStoredLogs)
+        }
         LCLogger.logs.send(logs)
     }
     
