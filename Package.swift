@@ -18,6 +18,10 @@ let package = Package(
     targets: [
         .target(
             name: "LCLogger"
+        ),
+        .testTarget(
+            name: "LCLoggerTests",
+            dependencies: ["LCLogger"]
         )
     ]
 )
