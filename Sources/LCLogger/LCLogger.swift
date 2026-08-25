@@ -41,8 +41,12 @@ public final class LCLogger {
         let log = LCLoggerLog(message: message, type: type, filePath: filePath, line: line)
         outputStream.write(log.formattedMessage)
         guard enabled else { return }
-        let logs = LCLogger.logs.value + [log]
-        LCLogger.logs.send(Array(logs.suffix(LCLogger.maxStoredLogs)))
+        var logs = LCLogger.logs.value
+        logs.append(log)
+        if logs.count > LCLogger.maxStoredLogs {
+            logs.removeFirst(logs.count - LCLogger.maxStoredLogs)
+        }
+        LCLogger.logs.send(logs)
     }
     
     public func warning(_ message: Any, type: String = "", filePath: String = #file, line: Int = #line) {
